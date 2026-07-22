@@ -2,8 +2,6 @@
 
 CPU usage as an animated progress bar in your [DankBar](https://github.com/AvengeMedia/DankMaterialShell), updated every second.
 
-![Screenshot](Screenshot.png)
-
 Sibling of [RAM Monitor](https://github.com/rollecode/dms-ram-monitor), [VRAM Monitor](https://github.com/rollecode/dms-vram-monitor), [GPU Monitor](https://github.com/rollecode/dms-gpu-monitor) and [Disk Monitor](https://github.com/rollecode/dms-disk-monitor).
 
 ## What it does
