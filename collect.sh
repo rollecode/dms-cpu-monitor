@@ -108,8 +108,8 @@ if command -v liquidctl >/dev/null 2>&1; then
     $2=="Pump" && $3=="duty"  {pd=$4}
     $2=="Pump" && $3=="speed" {ps=$4}
     END{
-      if (ps+0 > 0) printf "F\t%d\t-\tPump\t%d%% duty\t\t%d rpm\n", pd, pd, ps
-      for (i in fs) if (fs[i]+0 > 0) printf "F\t%d\t-\tFan %s\t%d%% duty\t\t%d rpm\n", fd[i], i, fd[i], fs[i]
+      if (ps+0 > 0) printf "F\t%d\t-\tPump\t%d rpm\t%%\n", pd, ps
+      for (i in fs) if (fs[i]+0 > 0) printf "F\t%d\t-\tFan %s\t%d rpm\t%%\n", fd[i], i, fs[i]
     }'
 fi
 

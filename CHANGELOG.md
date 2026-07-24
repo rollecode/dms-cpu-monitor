@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.4.1: 2026-07-24
+
+* Cooling rows follow the GPU fan style: duty percent as the main number, rpm dimmed beside the label
+* Force the number column to a single line, long values elide instead of wrapping
+
 ### 1.4.0: 2026-07-24
 
 * Pin CPU cooling under Temp when liquidctl is present: pump and each spinning fan, duty as the percent for bar and colour, speed as the number. Skipped silently without liquidctl

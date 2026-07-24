@@ -233,6 +233,9 @@ PluginComponent {
                                     width: 46
                                     horizontalAlignment: Text.AlignRight
                                     text: modelData.display.length > 0 ? modelData.display : `${modelData.value}${modelData.unit}`
+                                    wrapMode: Text.NoWrap
+                                    maximumLineCount: 1
+                                    elide: Text.ElideRight
                                     font.pixelSize: Theme.fontSizeSmall - 1
                                     color: modelData.free ? Theme.primary : Theme.surfaceVariantText
                                     opacity: modelData.free ? 1.0 : 0.7
