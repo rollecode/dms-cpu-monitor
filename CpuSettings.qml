@@ -45,6 +45,13 @@ PluginSettings {
         defaultValue: "CPU"
     }
 
+    ToggleSetting {
+        settingKey: "showLoadAvg"
+        label: "Show load average"
+        description: "One minute load average scaled to core count instead of the instant usage"
+        defaultValue: false
+    }
+
     SliderSetting {
         settingKey: "topCount"
         label: "Entries to show"

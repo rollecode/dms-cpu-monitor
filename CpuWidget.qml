@@ -13,6 +13,7 @@ PluginComponent {
     property real prevTotal: 0.0
     property real prevIdle: 0.0
     property bool showLabel: pluginData.showLabel !== false
+    property bool showLoadAvg: pluginData.showLoadAvg === true
     property string labelText: pluginData.labelText || "CPU"
     property int topCount: pluginData.topCount || 30
     property var rows: []
@@ -34,11 +35,18 @@ PluginComponent {
 
     Process {
         id: statProcess
-        command: ["cat", "/proc/stat"]
+        command: ["sh", "-c", "cat /proc/stat; echo LOADAVG $(cat /proc/loadavg); echo NCPU $(nproc)"]
         running: false
 
         stdout: StdioCollector {
             onStreamFinished: {
+                if (root.showLoadAvg) {
+                    const lm = text.match(/^LOADAVG ([0-9.]+)/m)
+                    const nm = text.match(/^NCPU (\d+)/m)
+                    if (lm && nm)
+                        root.cpuPercent = 100 * parseFloat(lm[1]) / Math.max(1, parseInt(nm[1]))
+                    return
+                }
                 const m = text.match(/^cpu +(.+)$/m)
                 if (!m) return
                 const f = m[1].trim().split(/\s+/).map(Number)
