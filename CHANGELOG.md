@@ -1,5 +1,11 @@
 # Changelog
 
+### 1.3.0: 2026-07-24
+
+* Load rows show the raw load as the number, with the scaled percentage dimmed beside it
+* Bars and colours for load scale against a configurable full-scale load: 0 means automatic, twice the core count. A busy box no longer glows red around the clock
+* The load average pill mode uses the same full scale
+
 ### 1.2.0: 2026-07-24
 
 * Pin the three load averages under Temp, normalized to core count with the raw load dimmed beside them

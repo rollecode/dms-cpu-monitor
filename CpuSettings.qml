@@ -53,6 +53,16 @@ PluginSettings {
     }
 
     SliderSetting {
+        settingKey: "loadFullScale"
+        label: "Load that counts as 100%"
+        description: "Bars and colours for load average scale against this. 0 means automatic, twice the core count"
+        defaultValue: 0
+        minimum: 0
+        maximum: 96
+        unit: ""
+    }
+
+    SliderSetting {
         settingKey: "topCount"
         label: "Entries to show"
         description: "How many rows the popout lists, biggest first"

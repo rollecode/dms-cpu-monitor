@@ -14,6 +14,8 @@ PluginComponent {
     property real prevIdle: 0.0
     property bool showLabel: pluginData.showLabel !== false
     property bool showLoadAvg: pluginData.showLoadAvg === true
+    property int loadFullScale: pluginData.loadFullScale || 0
+    property int ncpu: 1
     property string labelText: pluginData.labelText || "CPU"
     property int topCount: pluginData.topCount || 30
     property var rows: []
@@ -40,11 +42,13 @@ PluginComponent {
 
         stdout: StdioCollector {
             onStreamFinished: {
+                const nm = text.match(/^NCPU (\d+)/m)
+                if (nm) root.ncpu = Math.max(1, parseInt(nm[1]))
                 if (root.showLoadAvg) {
                     const lm = text.match(/^LOADAVG ([0-9.]+)/m)
-                    const nm = text.match(/^NCPU (\d+)/m)
-                    if (lm && nm)
-                        root.cpuPercent = 100 * parseFloat(lm[1]) / Math.max(1, parseInt(nm[1]))
+                    const fs = root.loadFullScale > 0 ? root.loadFullScale : root.ncpu * 2
+                    if (lm)
+                        root.cpuPercent = 100 * parseFloat(lm[1]) / fs
                     return
                 }
                 const m = text.match(/^cpu +(.+)$/m)
@@ -73,7 +77,7 @@ PluginComponent {
 
     Process {
         id: rowsProcess
-        command: ["sh", Qt.resolvedUrl("collect.sh").toString().replace("file://", "")]
+        command: ["sh", Qt.resolvedUrl("collect.sh").toString().replace("file://", ""), String(root.loadFullScale)]
         running: false
 
         stdout: StdioCollector {
@@ -89,9 +93,10 @@ PluginComponent {
                         name: f[3],
                         detail: f[4] || "",
                         unit: f[5] || "%",
+                        display: f[6] || "",
                         killable: f[0] === "P",
-                        free: f[0] === "F",
-                        pinned: f[0] === "F",
+                        free: f[0] === "F" || f[0] === "L",
+                        pinned: f[0] === "F" || f[0] === "L",
                         share: parseInt(f[1]) / 100
                     })
                 }
@@ -226,7 +231,7 @@ PluginComponent {
                                 StyledText {
                                     width: 46
                                     horizontalAlignment: Text.AlignRight
-                                    text: `${modelData.value}${modelData.unit}`
+                                    text: modelData.display.length > 0 ? modelData.display : `${modelData.value}${modelData.unit}`
                                     font.pixelSize: Theme.fontSizeSmall - 1
                                     color: modelData.free ? Theme.primary : Theme.surfaceVariantText
                                     opacity: modelData.free ? 1.0 : 0.7

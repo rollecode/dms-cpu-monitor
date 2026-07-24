@@ -47,6 +47,9 @@ snap_procs() {
   }' /proc/[0-9]*/stat 2>/dev/null
 }
 
+FS=${1:-0}
+case "$FS" in (*[!0-9]*|"") FS=0;; esac
+
 T1=$(snap_total); P1=$(snap_procs)
 sleep 0.5
 T2=$(snap_total); P2=$(snap_procs)
@@ -90,9 +93,11 @@ for h in /sys/class/hwmon/hwmon*/temp*_label; do
   fi
 done
 
-# Load averages normalized to core count; the raw load sits in the dim slot.
-awk -v n="$NCPU" '{
-  printf "F\t%d\t-\tLoad 1 min\t%s\t%%\n",  $1/n*100, $1
-  printf "F\t%d\t-\tLoad 5 min\t%s\t%%\n",  $2/n*100, $2
-  printf "F\t%d\t-\tLoad 15 min\t%s\t%%\n", $3/n*100, $3
+# Load rows show the raw load as the number; bar and colour scale against
+# the configured full-scale load (0 = twice the core count).
+[ "$FS" -gt 0 ] || FS=$((NCPU * 2))
+awk -v fs="$FS" '{
+  printf "L\t%d\t-\tLoad 1 min\t%d%% of %d\t\t%.2f\n",  $1/fs*100, $1/fs*100, fs, $1
+  printf "L\t%d\t-\tLoad 5 min\t%d%% of %d\t\t%.2f\n",  $2/fs*100, $2/fs*100, fs, $2
+  printf "L\t%d\t-\tLoad 15 min\t%d%% of %d\t\t%.2f\n", $3/fs*100, $3/fs*100, fs, $3
 }' /proc/loadavg
