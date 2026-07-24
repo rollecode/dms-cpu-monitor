@@ -96,8 +96,10 @@ done
 # Load rows show the raw load as the number; bar and colour scale against
 # the configured full-scale load (0 = twice the core count).
 [ "$FS" -gt 0 ] || FS=$((NCPU * 2))
-awk -v fs="$FS" '{
-  printf "L\t%d\t-\tLoad 1 min\t%d%% of %d\t\t%.2f\n",  $1/fs*100, $1/fs*100, fs, $1
-  printf "L\t%d\t-\tLoad 5 min\t%d%% of %d\t\t%.2f\n",  $2/fs*100, $2/fs*100, fs, $2
-  printf "L\t%d\t-\tLoad 15 min\t%d%% of %d\t\t%.2f\n", $3/fs*100, $3/fs*100, fs, $3
+# Last field colours the row: load against CORES, because a run queue past
+# the CPU's threads is saturation no matter how wide the display scale is.
+awk -v fs="$FS" -v n="$NCPU" '{
+  printf "L\t%d\t-\tLoad 1 min\t%d%% of %d\t\t%.2f\t%d\n",  $1/fs*100, $1/fs*100, fs, $1, $1/n*100
+  printf "L\t%d\t-\tLoad 5 min\t%d%% of %d\t\t%.2f\t%d\n",  $2/fs*100, $2/fs*100, fs, $2, $2/n*100
+  printf "L\t%d\t-\tLoad 15 min\t%d%% of %d\t\t%.2f\t%d\n", $3/fs*100, $3/fs*100, fs, $3, $3/n*100
 }' /proc/loadavg

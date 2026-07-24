@@ -16,6 +16,7 @@ PluginComponent {
     property bool showLoadAvg: pluginData.showLoadAvg === true
     property int loadFullScale: pluginData.loadFullScale || 0
     property int ncpu: 1
+    property real loadCoresPct: 0
     property string labelText: pluginData.labelText || "CPU"
     property int topCount: pluginData.topCount || 30
     property var rows: []
@@ -47,8 +48,10 @@ PluginComponent {
                 if (root.showLoadAvg) {
                     const lm = text.match(/^LOADAVG ([0-9.]+)/m)
                     const fs = root.loadFullScale > 0 ? root.loadFullScale : root.ncpu * 2
-                    if (lm)
+                    if (lm) {
                         root.cpuPercent = 100 * parseFloat(lm[1]) / fs
+                        root.loadCoresPct = 100 * parseFloat(lm[1]) / root.ncpu
+                    }
                     return
                 }
                 const m = text.match(/^cpu +(.+)$/m)
@@ -94,6 +97,7 @@ PluginComponent {
                         detail: f[4] || "",
                         unit: f[5] || "%",
                         display: f[6] || "",
+                        colorPct: parseInt(f[7]) || 0,
                         killable: f[0] === "P",
                         free: f[0] === "F" || f[0] === "L",
                         pinned: f[0] === "F" || f[0] === "L",
@@ -147,7 +151,7 @@ PluginComponent {
                     width: parent.width * Math.min(root.cpuPercent, 100) / 100
                     height: parent.height
                     radius: parent.radius
-                    color: root.usageColor(root.cpuPercent)
+                    color: root.usageColor(root.showLoadAvg ? root.loadCoresPct : root.cpuPercent)
                     Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
                     Behavior on color { ColorAnimation { duration: 400 } }
                 }
@@ -249,7 +253,7 @@ PluginComponent {
                                         width: parent.width * Math.min(modelData.share || 0, 1)
                                         height: parent.height
                                         radius: parent.radius
-                                        color: modelData.name === "Idle right now" ? Theme.primary : root.usageColor(modelData.value)
+                                        color: modelData.name === "Idle right now" ? Theme.primary : root.usageColor(modelData.colorPct > 0 ? modelData.colorPct : modelData.value)
                                     }
                                 }
                             }

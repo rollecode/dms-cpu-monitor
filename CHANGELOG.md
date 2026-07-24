@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.3.1: 2026-07-24
+
+* Colour load by cores, not by the display scale: a run queue past the CPU's threads is red no matter how wide the bar's range is. The bar keeps the configurable full scale
+
 ### 1.3.0: 2026-07-24
 
 * Load rows show the raw load as the number, with the scaled percentage dimmed beside it
