@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.4.0: 2026-07-24
+
+* Pin CPU cooling under Temp when liquidctl is present: pump and each spinning fan, duty as the percent for bar and colour, speed as the number. Skipped silently without liquidctl
+* Label Steam's shader pre-compiler: fossilize_replay shows "steam" dimmed instead of a bare truncated comm
+
 ### 1.3.2: 2026-07-24
 
 * One scale for load: the number, bar and colour all read against the same full-scale (0 = the core count). The dual-scale design coloured a 24% reading orange, which made no sense on sight

@@ -21,6 +21,9 @@ detail_for() {
       _s=$(printf '%s\n' "$_cmd" | sed -n '2,$p' | grep -v '^-' | head -1)
       [ -n "$_s" ] && printf '%s' "$(basename "$_s")"
       ;;
+    fossilize*)
+      printf 'steam'
+      ;;
     claude|bash|sh|zsh|fish|nvim|vim|git)
       _c=$(readlink "/proc/$_pid/cwd" 2>/dev/null)
       [ -n "$_c" ] && printf '%s' "$(basename "$_c")"
@@ -96,6 +99,20 @@ done
 # Load rows show the raw load as the number; bar and colour scale against
 # the configured full-scale load (0 = twice the core count).
 [ "$FS" -gt 0 ] || FS=$NCPU
+# CPU cooling via liquidctl (Kraken pump + fans): duty is the percent for
+# bar and colour, speed is the number. Skipped silently without liquidctl.
+if command -v liquidctl >/dev/null 2>&1; then
+  liquidctl status 2>/dev/null | awk '
+    $2=="Fan" && $4=="duty"  {fd[$3]=$5}
+    $2=="Fan" && $4=="speed" {fs[$3]=$5}
+    $2=="Pump" && $3=="duty"  {pd=$4}
+    $2=="Pump" && $3=="speed" {ps=$4}
+    END{
+      if (ps+0 > 0) printf "F\t%d\t-\tPump\t%d%% duty\t\t%d rpm\n", pd, pd, ps
+      for (i in fs) if (fs[i]+0 > 0) printf "F\t%d\t-\tFan %s\t%d%% duty\t\t%d rpm\n", fd[i], i, fd[i], fs[i]
+    }'
+fi
+
 # One scale: the full-scale load is 100% for the number, bar and colour
 # alike (0 = automatic, the core count). Red means the queue outruns it.
 awk -v fs="$FS" '{
