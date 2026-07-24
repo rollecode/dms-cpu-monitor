@@ -65,7 +65,7 @@ END{
   dt=t2-t1
   if (dt<=0) exit
   idle=int((i2-i1)/dt*100); if (idle<0) idle=0; if (idle>100) idle=100
-  printf "F\t%d\t-\tIdle\t\t%%\n", idle
+  printf "F\t%d\t-\tIdle right now\t\t%%\n", idle
   for (pid in b) {
     if (!(pid in a)) continue
     pct=int((b[pid]-a[pid])/dt*ncpu*100 + 0.5)
@@ -89,3 +89,10 @@ for h in /sys/class/hwmon/hwmon*/temp*_label; do
     break
   fi
 done
+
+# Load averages normalized to core count; the raw load sits in the dim slot.
+awk -v n="$NCPU" '{
+  printf "F\t%d\t-\tLoad 1 min\t%s\t%%\n",  $1/n*100, $1
+  printf "F\t%d\t-\tLoad 5 min\t%s\t%%\n",  $2/n*100, $2
+  printf "F\t%d\t-\tLoad 15 min\t%s\t%%\n", $3/n*100, $3
+}' /proc/loadavg

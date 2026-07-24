@@ -244,7 +244,7 @@ PluginComponent {
                                         width: parent.width * Math.min(modelData.share || 0, 1)
                                         height: parent.height
                                         radius: parent.radius
-                                        color: modelData.name === "Idle" ? Theme.primary : root.usageColor(modelData.value)
+                                        color: modelData.name === "Idle right now" ? Theme.primary : root.usageColor(modelData.value)
                                     }
                                 }
                             }
