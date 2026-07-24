@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.3.2: 2026-07-24
+
+* One scale for load: the number, bar and colour all read against the same full-scale (0 = the core count). The dual-scale design coloured a 24% reading orange, which made no sense on sight
+
 ### 1.3.1: 2026-07-24
 
 * Colour load by cores, not by the display scale: a run queue past the CPU's threads is red no matter how wide the bar's range is. The bar keeps the configurable full scale

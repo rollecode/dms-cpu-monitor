@@ -16,7 +16,6 @@ PluginComponent {
     property bool showLoadAvg: pluginData.showLoadAvg === true
     property int loadFullScale: pluginData.loadFullScale || 0
     property int ncpu: 1
-    property real loadCoresPct: 0
     property string labelText: pluginData.labelText || "CPU"
     property int topCount: pluginData.topCount || 30
     property var rows: []
@@ -47,11 +46,9 @@ PluginComponent {
                 if (nm) root.ncpu = Math.max(1, parseInt(nm[1]))
                 if (root.showLoadAvg) {
                     const lm = text.match(/^LOADAVG ([0-9.]+)/m)
-                    const fs = root.loadFullScale > 0 ? root.loadFullScale : root.ncpu * 2
-                    if (lm) {
+                    const fs = root.loadFullScale > 0 ? root.loadFullScale : root.ncpu
+                    if (lm)
                         root.cpuPercent = 100 * parseFloat(lm[1]) / fs
-                        root.loadCoresPct = 100 * parseFloat(lm[1]) / root.ncpu
-                    }
                     return
                 }
                 const m = text.match(/^cpu +(.+)$/m)
@@ -151,7 +148,7 @@ PluginComponent {
                     width: parent.width * Math.min(root.cpuPercent, 100) / 100
                     height: parent.height
                     radius: parent.radius
-                    color: root.usageColor(root.showLoadAvg ? root.loadCoresPct : root.cpuPercent)
+                    color: root.usageColor(root.cpuPercent)
                     Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
                     Behavior on color { ColorAnimation { duration: 400 } }
                 }

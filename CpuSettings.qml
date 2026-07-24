@@ -55,7 +55,7 @@ PluginSettings {
     SliderSetting {
         settingKey: "loadFullScale"
         label: "Load that counts as 100%"
-        description: "Bars and colours for load average scale against this. 0 means automatic, twice the core count"
+        description: "The load that reads as 100% for the number, bar and colour. 0 means automatic, the core count"
         defaultValue: 0
         minimum: 0
         maximum: 96
