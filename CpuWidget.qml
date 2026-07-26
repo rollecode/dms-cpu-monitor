@@ -21,10 +21,22 @@ PluginComponent {
     property var rows: []
     property bool popoutOpen: false
 
+    // Bar-aware sizing: the DankBar carries its own font scale and thickness,
+    // and a pill that ignores them stays put while everything else resizes.
+    readonly property real pillFont: Theme.barTextSize(barThickness, barConfig ? barConfig.fontScale : undefined, barConfig ? barConfig.maximizeWidgetText : undefined)
+
     function usageColor(percent) {
         if (percent > 90) return Theme.error
         if (percent > 75) return "#ffa500"
         return Theme.primary
+    }
+
+    // Reserve exactly the width of the widest value so the pill never resizes
+    // as digits change, without parking short values far from the bar.
+    TextMetrics {
+        id: pctMetrics
+        font.pixelSize: root.pillFont
+        text: "100%"
     }
 
     Timer {
@@ -124,7 +136,7 @@ PluginComponent {
 
             DankIcon {
                 name: "memory"
-                size: Theme.fontSizeLarge
+                size: root.iconSizeLarge
                 color: Theme.surfaceText
                 anchors.verticalCenter: parent.verticalCenter
             }
@@ -132,35 +144,40 @@ PluginComponent {
             StyledText {
                 visible: root.showLabel
                 text: root.labelText
-                font.pixelSize: Theme.fontSizeSmall
+                font.pixelSize: root.pillFont
                 color: Theme.surfaceText
                 anchors.verticalCenter: parent.verticalCenter
             }
 
-            Rectangle {
-                width: 44
-                height: 6
-                radius: 3
-                color: Qt.rgba(Theme.surfaceText.r, Theme.surfaceText.g, Theme.surfaceText.b, 0.25)
+            Row {
+                spacing: 4
                 anchors.verticalCenter: parent.verticalCenter
 
                 Rectangle {
-                    width: parent.width * Math.min(root.cpuPercent, 100) / 100
-                    height: parent.height
-                    radius: parent.radius
-                    color: root.usageColor(root.cpuPercent)
-                    Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-                    Behavior on color { ColorAnimation { duration: 400 } }
-                }
-            }
+                    width: Math.round(root.pillFont * 3.7)
+                    height: Math.max(4, Math.round(root.pillFont / 2))
+                    radius: height / 2
+                    color: Qt.rgba(Theme.surfaceText.r, Theme.surfaceText.g, Theme.surfaceText.b, 0.25)
+                    anchors.verticalCenter: parent.verticalCenter
 
-            StyledText {
-                width: 34
-                horizontalAlignment: Text.AlignRight
-                text: `${root.cpuPercent.toFixed(0)}%`
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.surfaceText
-                anchors.verticalCenter: parent.verticalCenter
+                    Rectangle {
+                        width: parent.width * Math.min(root.cpuPercent, 100) / 100
+                        height: parent.height
+                        radius: parent.radius
+                        color: root.usageColor(root.cpuPercent)
+                        Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+                        Behavior on color { ColorAnimation { duration: 400 } }
+                    }
+                }
+
+                StyledText {
+                    width: pctMetrics.width
+                    horizontalAlignment: Text.AlignLeft
+                    text: `${root.cpuPercent.toFixed(0)}%`
+                    font.pixelSize: root.pillFont
+                    color: Theme.surfaceText
+                    anchors.verticalCenter: parent.verticalCenter
+                }
             }
         }
     }
