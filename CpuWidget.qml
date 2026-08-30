@@ -31,6 +31,12 @@ PluginComponent {
         return Theme.primary
     }
 
+    // Cooling rows report duty, where full is the healthy state rather than
+    // saturation, so the usage scale's warning colours do not apply to them.
+    function isCoolingRow(name) {
+        return name === "Pump" || name.indexOf("Fan ") === 0
+    }
+
     // Reserve exactly the width of the widest value so the pill never resizes
     // as digits change, without parking short values far from the bar.
     TextMetrics {
@@ -274,7 +280,7 @@ PluginComponent {
                                         width: parent.width * Math.min(modelData.share || 0, 1)
                                         height: parent.height
                                         radius: parent.radius
-                                        color: modelData.name === "Idle right now" ? Theme.primary : root.usageColor(modelData.colorPct > 0 ? modelData.colorPct : modelData.value)
+                                        color: (modelData.name === "Idle right now" || root.isCoolingRow(modelData.name)) ? Theme.primary : root.usageColor(modelData.colorPct > 0 ? modelData.colorPct : modelData.value)
                                     }
                                 }
                             }

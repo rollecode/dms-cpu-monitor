@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.6.1: 2026-08-30
+
+* Stop pump and fan rows colouring red at full duty
+
 ### 1.6.0: 2026-07-26
 
 * Warm the popout list in the background so it paints instantly instead of filling in up to a second after opening
