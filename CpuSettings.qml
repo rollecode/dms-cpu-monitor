@@ -17,7 +17,7 @@ PluginSettings {
 
     StyledText {
         width: parent.width
-        text: "CPU usage as an animated progress bar in your DankBar, updated every second."
+        text: "CPU usage as an animated progress bar in your DankBar, updated every few seconds from DMS."
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.surfaceVariantText
         wrapMode: Text.WordWrap
