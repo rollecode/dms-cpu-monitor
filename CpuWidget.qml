@@ -3,31 +3,40 @@ import Quickshell
 import Quickshell.Io
 
 import qs.Common
+import qs.Services
 import qs.Widgets
 import qs.Modules.Plugins
 
 PluginComponent {
     id: root
 
-    property real cpuPercent: 0.0
-    property real prevTotal: 0.0
-    property real prevIdle: 0.0
     property bool showLabel: pluginData.showLabel !== false
     property bool showLoadAvg: pluginData.showLoadAvg === true
     property int loadFullScale: pluginData.loadFullScale || 0
-    property int ncpu: 1
     property string labelText: pluginData.labelText || "CPU"
     property int topCount: pluginData.topCount || 30
     property var rows: []
     property bool popoutOpen: false
+    // Killing any of these ends or breaks the session, so their rows get no kill button.
+    readonly property var sessionCritical: ["driftwm", "Hyprland", "niri", "sway", "river", "labwc", "wayfire", "kwin_wayland", "kwin_x11", "gnome-shell", "plasmashell", "Xwayland", "xwayland-satell", "Xorg", "qs", "quickshell", "dms", "pipewire", "wireplumber", "dbus-daemon", "dbus-broker", "systemd"]
 
     // Bar-aware sizing: the DankBar carries its own font scale and thickness,
     // and a pill that ignores them stays put while everything else resizes.
+    readonly property real loadPercent: {
+        const load1 = parseFloat(DgopService.loadAverage) || 0
+        const fullScale = loadFullScale > 0 ? loadFullScale : Math.max(1, DgopService.cpuCores)
+        return 100 * load1 / fullScale
+    }
+    readonly property real cpuPercent: showLoadAvg ? loadPercent : DgopService.cpuUsage
+
+    Component.onCompleted: DgopService.addRef(["cpu", "system"])
+    Component.onDestruction: DgopService.removeRef(["cpu", "system"])
+
     readonly property real pillFont: Theme.barTextSize(barThickness, barConfig ? barConfig.fontScale : undefined, barConfig ? barConfig.maximizeWidgetText : undefined)
 
     function usageColor(percent) {
         if (percent > 90) return Theme.error
-        if (percent > 75) return "#ffa500"
+        if (percent > 75) return Theme.warning
         return Theme.primary
     }
 
@@ -45,57 +54,14 @@ PluginComponent {
         text: "100%"
     }
 
+    // Process scans only while someone is looking; the last list stays shown until the first refresh.
     Timer {
-        interval: 1000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: statProcess.running = true
-    }
-
-    Process {
-        id: statProcess
-        command: ["sh", "-c", "cat /proc/stat; echo LOADAVG $(cat /proc/loadavg); echo NCPU $(nproc)"]
-        running: false
-
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const nm = text.match(/^NCPU (\d+)/m)
-                if (nm) root.ncpu = Math.max(1, parseInt(nm[1]))
-                if (root.showLoadAvg) {
-                    const lm = text.match(/^LOADAVG ([0-9.]+)/m)
-                    const fs = root.loadFullScale > 0 ? root.loadFullScale : root.ncpu
-                    if (lm)
-                        root.cpuPercent = 100 * parseFloat(lm[1]) / fs
-                    return
-                }
-                const m = text.match(/^cpu +(.+)$/m)
-                if (!m) return
-                const f = m[1].trim().split(/\s+/).map(Number)
-                const total = f.reduce((a, b) => a + b, 0)
-                const idle = f[3] + (f[4] || 0)
-                if (root.prevTotal > 0 && total > root.prevTotal) {
-                    const dt = total - root.prevTotal
-                    const di = idle - root.prevIdle
-                    root.cpuPercent = Math.max(0, Math.min(100, 100 * (1 - di / dt)))
-                }
-                root.prevTotal = total
-                root.prevIdle = idle
-            }
-        }
-    }
-
-    // Warm the list in the background: the collectors take up to a second, and
-    // starting them on click leaves the popout empty until they finish.
-    Timer {
-        interval: root.popoutOpen ? 2000 : 20000
-        running: true
+        interval: 2000
+        running: root.popoutOpen
         repeat: true
         triggeredOnStart: true
         onTriggered: rowsProcess.running = true
     }
-
-    onPopoutOpenChanged: if (popoutOpen) rowsProcess.running = true
 
     Process {
         id: rowsProcess
@@ -117,7 +83,7 @@ PluginComponent {
                         unit: f[5] || "%",
                         display: f[6] || "",
                         colorPct: parseInt(f[7]) || 0,
-                        killable: f[0] === "P",
+                        killable: f[0] === "P" && root.sessionCritical.indexOf(f[3]) === -1,
                         free: f[0] === "F" || f[0] === "L",
                         pinned: f[0] === "F" || f[0] === "L",
                         share: parseInt(f[1]) / 100

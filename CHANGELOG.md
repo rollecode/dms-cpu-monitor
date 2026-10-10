@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.6.2: 2026-10-10
+
+* Fix polling and theme colour from review [#677](https://github.com/AvengeMedia/dms-plugin-registry/issues/677)
+* Hide kill button on session processes
+
 ### 1.6.1: 2026-08-30
 
 * Stop pump and fan rows colouring red at full duty
