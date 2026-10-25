@@ -12,6 +12,7 @@ PluginComponent {
 
     property bool showLabel: pluginData.showLabel !== false
     property bool showLoadAvg: pluginData.showLoadAvg === true
+    property bool loadInBar: pluginData.loadInBar === true
     property int loadFullScale: pluginData.loadFullScale || 0
     property string labelText: pluginData.labelText || "CPU"
     property int topCount: pluginData.topCount || 30
@@ -22,8 +23,8 @@ PluginComponent {
 
     // Bar-aware sizing: the DankBar carries its own font scale and thickness,
     // and a pill that ignores them stays put while everything else resizes.
+    readonly property real load1: parseFloat(DgopService.loadAverage) || 0
     readonly property real loadPercent: {
-        const load1 = parseFloat(DgopService.loadAverage) || 0
         const fullScale = loadFullScale > 0 ? loadFullScale : Math.max(1, DgopService.cpuCores)
         return 100 * load1 / fullScale
     }
@@ -51,7 +52,7 @@ PluginComponent {
     TextMetrics {
         id: pctMetrics
         font.pixelSize: root.pillFont
-        text: "100%"
+        text: root.loadInBar ? "88.88" : "100%"
     }
 
     // Process scans only while someone is looking; the last list stays shown until the first refresh.
@@ -149,7 +150,7 @@ PluginComponent {
                 StyledText {
                     width: pctMetrics.width
                     horizontalAlignment: Text.AlignLeft
-                    text: `${root.cpuPercent.toFixed(0)}%`
+                    text: root.loadInBar && !root.popoutOpen ? root.load1.toFixed(2) : `${root.cpuPercent.toFixed(0)}%`
                     font.pixelSize: root.pillFont
                     color: Theme.surfaceText
                     anchors.verticalCenter: parent.verticalCenter

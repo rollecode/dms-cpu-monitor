@@ -31,6 +31,7 @@ Then enable it in Settings, Plugins, and add the widget to your bar layout in Se
 - **Show label**: toggle the text label between the icon and the bar (on by default)
 - **Label text**: customize the label (default `CPU`)
 - **Show load average**: one minute load average instead of the instant usage, scaled against the full-scale load
+- **Load average as the number**: the raw one minute load average replaces the percentage in the bar while the popout is closed
 - **Load that counts as 100%**: the number, bar and colour all read against this; 0 means automatic, the core count
 - **Entries to show**: how many rows the popout lists, 5 to 60 (default 30)
 

@@ -52,6 +52,13 @@ PluginSettings {
         defaultValue: false
     }
 
+    ToggleSetting {
+        settingKey: "loadInBar"
+        label: "Load average as the number"
+        description: "Show the raw one minute load average in place of the percentage while the popout is closed"
+        defaultValue: false
+    }
+
     SliderSetting {
         settingKey: "loadFullScale"
         label: "Load that counts as 100%"

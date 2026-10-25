@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.7.0: 2026-10-25
+
+* Add option to show load average as the bar number
+
 ### 1.6.2: 2026-10-10
 
 * Fix polling and theme colour from review [#677](https://github.com/AvengeMedia/dms-plugin-registry/issues/677)
