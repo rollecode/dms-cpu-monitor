@@ -14,7 +14,7 @@ Sibling of [RAM Monitor](https://github.com/rollecode/dms-ram-monitor), [VRAM Mo
 
 ## The popout
 
-Per-process CPU is sampled over half a second the way `top` does it, normalised per core, because `ps`-style lifetime averages make long-lived idle processes look busy. Each process shows a second, dimmer word where one can be resolved: the script for interpreters, the working directory for shells, the subprocess type for Electron apps. Temperature reads the CPU's own sensor (`Tctl`). With liquidctl present, the pump and each spinning fan pin below it: duty as the percent, speed as the number. The list is only collected while the popout is open.
+Per-process CPU is sampled over half a second the way `top` does it, normalised per core, because `ps`-style lifetime averages make long-lived idle processes look busy. Each process shows a second, dimmer word where one can be resolved: the script for interpreters, the working directory for shells, the subprocess type for Electron apps, the package for `npm exec`. A Claude Code process shows its session name (the tmux pane title, else the working directory) and its busiest child command, and processes running under a session end with `via <session>`. Temperature reads the CPU's own sensor (`Tctl`). With liquidctl present, the pump and each spinning fan pin below it: duty as the percent, speed as the number. The list is only collected while the popout is open.
 
 ## Installation
 

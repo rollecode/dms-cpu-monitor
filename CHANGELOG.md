@@ -3,6 +3,7 @@
 ### 1.7.0: 2026-10-25
 
 * Add option to show load average as the bar number
+* Show session and busy command for Claude Code rows
 
 ### 1.6.2: 2026-10-10
 

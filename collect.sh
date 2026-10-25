@@ -24,7 +24,14 @@ detail_for() {
     fossilize*)
       printf 'steam'
       ;;
-    claude|bash|sh|zsh|fish|nvim|vim|git)
+    npm*)
+      # npm rewrites its process title into one space-separated string.
+      printf '%s\n' "$_cmd" | tr ' ' '\n' | sed -n '3{s/@[0-9][^@/]*$//;p};4p' | tr '\n' ' ' | sed 's/ $//'
+      ;;
+    claude)
+      title_for "$_pid"
+      ;;
+    bash|sh|zsh|fish|nvim|vim|git)
       _c=$(readlink "/proc/$_pid/cwd" 2>/dev/null)
       [ -n "$_c" ] && printf '%s' "$(basename "$_c")"
       ;;
@@ -36,17 +43,39 @@ detail_for() {
   esac
 }
 
+# Claude Code puts the session name in the terminal title, which tmux keeps
+# as the pane title. Unnamed sessions fall back to the working directory.
+PANES=$(tmux list-panes -a -F '#{pane_tty} #{pane_title}' 2>/dev/null)
+
+title_for() {
+  _tty=$(readlink "/proc/$1/fd/0" 2>/dev/null)
+  _ti=$(printf '%s\n' "$PANES" | awk -v t="$_tty" '$1==t{sub(/^[^ ]* /,""); print; exit}' | sed 's/^[^[:alnum:]]*//')
+  case "$_ti" in
+    ""|claude|"Claude Code") _ti=$(basename "$(readlink "/proc/$1/cwd" 2>/dev/null)") ;;
+  esac
+  printf '%s' "$_ti"
+}
+
+label_for() {
+  _lc=$(cat "/proc/$1/comm" 2>/dev/null)
+  case "$_lc" in
+    python*|node|bun|npm*) _ld=$(detail_for "$1" "$_lc"); [ -n "$_ld" ] && _lc=$_ld ;;
+  esac
+  printf '%s' "$_lc"
+}
+
 snap_total() {
   awk '/^cpu /{t=0; for(i=2;i<=NF;i++) t+=$i; print t, $5+$6}' /proc/stat
 }
 
 # The comm field in /proc/<pid>/stat can hold spaces and parens, so strip
-# through the last ')' before indexing: utime and stime land at 12 and 13.
+# through the last ')' before indexing: ppid at 2, utime and stime at 12 and 13.
 snap_procs() {
   awk '{
     pid=FILENAME; sub(/^\/proc\//,"",pid); sub(/\/stat$/,"",pid)
-    line=$0; sub(/^[^)]*\) /,"",line); n=split(line,f," ")
-    if (n>=13) print pid, f[12]+f[13]
+    line=$0; sub(/^.*\) /,"",line); n=split(line,f," ")
+    c=$0; sub(/^[^(]*\(/,"",c); sub(/\) [^)]*$/,"",c)
+    if (n>=13) print pid, f[12]+f[13], f[2], c
   }' /proc/[0-9]*/stat 2>/dev/null
 }
 
@@ -66,7 +95,7 @@ NCPU=$(nproc)
 $1=="T"{t1=$2; i1=$3}
 $1=="U"{t2=$2; i2=$3}
 $1=="A"{a[$2]=$3}
-$1=="B"{b[$2]=$3}
+$1=="B"{b[$2]=$3; pp[$2]=$4; cm[$2]=$5}
 END{
   dt=t2-t1
   if (dt<=0) exit
@@ -75,14 +104,31 @@ END{
   for (pid in b) {
     if (!(pid in a)) continue
     pct=int((b[pid]-a[pid])/dt*ncpu*100 + 0.5)
-    if (pct>0) printf "P\t%d\t%s\t\t\t%%\n", pct, pid
+    if (pct>0) busy[pid]=pct
   }
+  # Tie each busy process to the claude session above it, and remember the
+  # busiest one per session so the claude row can name what it is running.
+  for (pid in busy) {
+    p=pp[pid]
+    for (d=0; d<32 && p>1 && cm[p]!="claude"; d++) p=pp[p]
+    if (cm[p]!="claude") continue
+    sess[pid]=p
+    if (busy[pid]>=10 && busy[pid]>best[p]) { best[p]=busy[pid]; top[p]=pid }
+  }
+  # read collapses empty tab fields, so empty pids go out as "-".
+  for (pid in busy) printf "P\t%d\t%s\t%s\t%s\t%%\n", busy[pid], pid, (pid in sess) ? sess[pid] : "-", (pid in top) ? top[pid] : "-"
+
+
   printf "T\t100\t-\tscale\t\t\n"
 }' | while IFS="$(printf '\t')" read -r type val pid name detail unit; do
   if [ "$type" = "P" ]; then
+    # For P rows the name and detail columns carry the session and top pids.
     c=$(cat "/proc/$pid/comm" 2>/dev/null)
     [ -z "$c" ] && continue
-    printf 'P\t%s\t%s\t%s\t%s\t%%\n' "$val" "$pid" "$c" "$(detail_for "$pid" "$c")"
+    d=$(detail_for "$pid" "$c")
+    [ "$detail" != "-" ] && d="$d $(label_for "$detail")"
+    [ "$name" != "-" ] && d="${d:+$d }via $(title_for "$name")"
+    printf 'P\t%s\t%s\t%s\t%s\t%%\n' "$val" "$pid" "$c" "$d"
   else
     printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$type" "$val" "$pid" "$name" "$detail" "$unit"
   fi
